@@ -1,0 +1,31 @@
+#!/bin/sh
+
+BUILD_DIR=$1
+CACHE_DIR=$2
+
+[ ! -d $BUILD_DIR ] && mkdir $BUILD_DIR
+[ ! -d $CACHE_DIR ] && mkdir $CACHE_DIR
+
+export PATH=$PATH:$HOME/.meteor/
+
+# Install Meteor
+curl https://install.meteor.com/ | sh
+# Go to Meteor project directory
+cd $BUILD_DIR
+# Bundle Meteor project
+meteor bundle $CACHE_DIR/bundle.tar.gz
+# Create directory to store bundle's content
+mkdir -p $BUILD_DIR/.meteor/local/build
+# Extract bundle's content
+tar -zxf $CACHE_DIR/bundle.tar.gz --strip-components 1 -C $BUILD_DIR/.meteor/local/build
+# Remove bundle file
+rm $CACHE_DIR/bundle.tar.gz
+
+# Create $BUILD_DIR/vendor/meteor directory
+mkdir -p $BUILD_DIR/vendor/meteor
+# Copy Meteor from $HOME/.meteor to $BUILD_DIR/vendor/meteor directory
+cp -r $HOME/.meteor/. $BUILD_DIR/vendor/meteor
+
+# Export PATH
+mkdir -p $BUILD_DIR/.profile.d
+echo "export PATH=$PATH:$HOME/vendor/meteor/tools/latest/bin" > $BUILD_DIR/.profile.d/nodejs.sh

@@ -1,0 +1,12 @@
+#!/bin/sh
+
+BUILD_DIR=$1
+
+cat <<-YAML
+---
+addons:
+  - mongohq:sandbox
+config_vars:
+default_process_types:
+  web: node .meteor/local/build/main.js
+YAML
