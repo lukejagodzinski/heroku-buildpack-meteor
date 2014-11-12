@@ -1,31 +1,80 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
+# Looking for ".meteor" directory
+if [ -d $1/".meteor" ]; then
+  # ".meteor" directory found in main directory
+  APP_DIR=$1
+else
+  # Try to find ".meteor" directory in subdirectories
+  APP_DIR=$(find $1 -type d -name ".meteor" 2>/dev/null -print -quit)
+  # Check if ".meteor" directory was found
+  if [ ! -z "$APP_DIR" ]; then
+    # Remove ".meteor" substring from "APP_DIR" variable
+    APP_DIR=$(dirname $APP_DIR)
+  fi
+fi
+
+# Create some variables.
+BUILDPACK_DIR=$(cd $(dirname $0); cd ..; pwd)
 BUILD_DIR=$1
 CACHE_DIR=$2
+ENV_DIR=$3
+COMPILE_DIR=$BUILD_DIR"/.heroku"
+COMPILE_BIN_DIR=$COMPILE_DIR"/bin" # Link for Node is stored here.
+COMPILE_APP_DIR=$COMPILE_DIR"/app" # Built Meteor application is stored here.
+TEMP_DIR=$(mktemp -d $BUILDPACK_DIR"/temp-XXXX")
 
-[ ! -d $BUILD_DIR ] && mkdir $BUILD_DIR
-[ ! -d $CACHE_DIR ] && mkdir $CACHE_DIR
+# Create directories.
+mkdir -p $COMPILE_BIN_DIR $COMPILE_APP_DIR
 
-export PATH=$PATH:$HOME/.meteor/
+# Load some convenience functions like status(), echo(), and indent().
+source $BUILDPACK_DIR"/bin/common.sh"
 
+#
+# Install Node
+#
+status "Installing Node"
+NODE_VERSION=$(curl -sS --get https://semver.io/node/resolve)
+NODE_URL="http://s3pository.heroku.com/node/v"$NODE_VERSION"/node-v"$NODE_VERSION"-linux-x64.tar.gz"
+curl -sS $NODE_URL -o - | tar -zxf - -C $COMPILE_DIR --strip 1
+export npm_config_prefix=$COMPILE_DIR
+export CPATH=$COMPILE_DIR"/include"
+export CPPPATH=$CPATH
+export PATH=$PATH:$COMPILE_BIN_DIR
+
+#
 # Install Meteor
-curl https://install.meteor.com/ | sh
-# Go to Meteor project directory
-cd $BUILD_DIR
-# Bundle Meteor project
-meteor bundle $CACHE_DIR/bundle.tar.gz
-# Create directory to store bundle's content
-mkdir -p $BUILD_DIR/.meteor/local/build
-# Extract bundle's content
-tar -zxf $CACHE_DIR/bundle.tar.gz --strip-components 1 -C $BUILD_DIR/.meteor/local/build
-# Remove bundle file
-rm $CACHE_DIR/bundle.tar.gz
+#
+status "Installing Meteor"
+curl -sS https://install.meteor.com/ | sh
+export PATH=$PATH:$HOME"/.meteor"
 
-# Create $BUILD_DIR/vendor/meteor directory
-mkdir -p $BUILD_DIR/vendor/meteor
-# Copy Meteor from $HOME/.meteor to $BUILD_DIR/vendor/meteor directory
-cp -r $HOME/.meteor/. $BUILD_DIR/vendor/meteor
+#
+# Build Meteor application
+#
+status "Building Meteor application"
+cd $APP_DIR && meteor build --directory $TEMP_DIR
+mv $TEMP_DIR"/bundle/"* $COMPILE_APP_DIR
 
-# Export PATH
-mkdir -p $BUILD_DIR/.profile.d
-echo "export PATH=$PATH:$HOME/vendor/meteor/tools/latest/bin" > $BUILD_DIR/.profile.d/nodejs.sh
+#
+# Install dependencies.
+#
+status "Installing dependencies"
+cd $COMPILE_APP_DIR"/programs/server" && (npm install --silent | indent)
+
+#
+# Build runtime environment
+#
+# Add an export of PATH which includes our compile dir.
+status "Building runtime environment"
+mkdir -p $BUILD_DIR"/.profile.d"
+echo "export PATH=\$COMPILE_BIN_DIR:\$PATH" > $BUILD_DIR"/.profile.d/nodejs.sh"
+
+#
+# Extras
+#
+# Source scripts from "extra" dir.
+status "Running extras"
+for file in $(ls $BUILDPACK_DIR"/extra" | sort); do
+  . $BUILDPACK_DIR"/extra/"$file
+done

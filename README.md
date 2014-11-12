@@ -2,8 +2,7 @@
 
 ## Supported version
 
-This buildpack is dedicated for use with Meteor 0.8.3.
-`heroku logs` prints out some routing errors, however buildpack works and you can use it in your projects. If anyone knows how to deal with routing errors, please let me know.
+This buildpack is dedicated for use with Meteor 1.0+.
 
 ## Usage
 
@@ -16,12 +15,6 @@ helloworld: created.
 To run your new app:
    cd helloworld
    meteor
-```
-
-In your application's directory you should have file named `Procfile` with the following content.
-
-```
-web: node .meteor/local/build/main.js
 ```
 
 Initialize git repository in application's directory.
@@ -46,11 +39,10 @@ Set ROOT_URL variable
 $ heroku config:set ROOT_URL=http://<unique_app_name>.herokuapp.com
 ```
 
-Add MongoHQ and set MONGO_URL variable
+Add MongoHQ
 
 ```
 $ heroku addons:add mongohq
-$ heroku config:set MONGO_URL=$(heroku config:get MONGOHQ_URL)
 ```
 
 Deploy application to Heroku server

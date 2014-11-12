@@ -1,4 +1,14 @@
 #!/bin/sh
 
-echo "meteor"
-exit 0
+if [ -d $1/".meteor" ]; then
+  echo "Meteor"
+  exit 0
+else
+  BUILD_DIR=$(find $1 -type d -name ".meteor" 2>/dev/null -print -quit)
+  if [ ! -z "$BUILD_DIR" ]; then
+    echo "Meteor"
+    exit 0
+  else
+    exit 1
+  fi
+fi
