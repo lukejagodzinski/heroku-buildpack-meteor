@@ -6,6 +6,8 @@ This buildpack is dedicated for use with Meteor 1.0+.
 
 ## Usage
 
+You can watch [video](http://youtu.be/boeTv3527E0) showing how to use buildpack.
+
 First you have to create Meteor application
 
 ```
