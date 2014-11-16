@@ -60,7 +60,9 @@ mv $TEMP_DIR"/bundle/"* $COMPILE_APP_DIR
 # Install dependencies.
 #
 status "Installing dependencies"
-cd $COMPILE_APP_DIR"/programs/server" && (npm install --silent | indent)
+if [ -e $COMPILE_APP_DIR"/programs/server/package.json" ]; then
+  cd $COMPILE_APP_DIR"/programs/server" && (npm install --silent | indent)
+fi
 
 #
 # Build runtime environment
