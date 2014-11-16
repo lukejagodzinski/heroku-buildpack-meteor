@@ -54,3 +54,22 @@ $ git push heroku master
 ```
 
 Enjoy!
+
+## Additional notes
+
+1. The `.meteor` directory doesn't have to be located in the root directory of the Git repository. This buildpack tries to find `.meteor` directory and use the first found location to build application. For instance, you can use following directories structure:
+```
+/.git/
+/.gitignore
+/web/.meteor
+/web/app.css
+/web/app.html
+/web/app.js
+/android/
+/ios/
+```
+
+2. If you want to deploy (`git push`) non `master` local branch to Heroku server use the following command:
+```
+$ git push heroku <local_branch_name>:master
+```
