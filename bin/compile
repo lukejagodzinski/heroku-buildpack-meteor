@@ -38,7 +38,7 @@ NODE_VERSION=$(curl -sS --get https://semver.io/node/resolve)
 NODE_URL="http://s3pository.heroku.com/node/v"$NODE_VERSION"/node-v"$NODE_VERSION"-linux-x64.tar.gz"
 curl -sS $NODE_URL -o - | tar -zxf - -C $COMPILE_DIR --strip 1
 export npm_config_prefix=$COMPILE_DIR
-export CPATH=$COMPILE_DIR"/include"
+export CPATH=$CPATH:$COMPILE_DIR"/include"
 export CPPPATH=$CPATH
 export PATH=$PATH:$COMPILE_BIN_DIR
 
