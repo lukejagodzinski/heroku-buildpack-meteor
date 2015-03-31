@@ -35,6 +35,7 @@ source $BUILDPACK_DIR"/bin/common.sh"
 #
 status "Installing Node"
 NODE_VERSION=$(curl -sS --get https://semver.io/node/resolve)
+NODE_VERSION="0.10.36"
 NODE_URL="http://s3pository.heroku.com/node/v"$NODE_VERSION"/node-v"$NODE_VERSION"-linux-x64.tar.gz"
 curl -sS $NODE_URL -o - | tar -zxf - -C $COMPILE_DIR --strip 1
 export npm_config_prefix=$COMPILE_DIR
